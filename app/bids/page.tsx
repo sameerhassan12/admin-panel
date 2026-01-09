@@ -27,6 +27,9 @@ export default function BidsPage() {
   const loadBids = async () => {
     setLoading(true);
     try {
+      if (!db) {
+        throw new Error('Firebase not initialized. Please refresh the page.');
+      }
       const snapshot = await getDocs(
         query(collection(db, 'bids'), orderBy('createdAt', 'desc'))
       );
