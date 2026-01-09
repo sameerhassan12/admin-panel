@@ -24,16 +24,20 @@ export interface Report {
 }
 
 export const getReports = async (): Promise<Report[]> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
     let snapshot;
     try {
       snapshot = await retryWithBackoff(() => getDocs(
-        query(collection(db, 'reports'), orderBy('createdAt', 'desc'))
+        query(collection(firestore, 'reports'), orderBy('createdAt', 'desc'))
       ));
     } catch (orderError: any) {
       // If orderBy fails, just get documents without ordering
       console.warn('Could not order reports by createdAt, fetching without order:', orderError);
-      snapshot = await retryWithBackoff(() => getDocs(collection(db, 'reports')));
+      snapshot = await retryWithBackoff(() => getDocs(collection(firestore, 'reports')));
     }
     
     const reports = snapshot.docs.map(doc => {
@@ -59,12 +63,16 @@ export const getReports = async (): Promise<Report[]> => {
 };
 
 export const getPendingReports = async (): Promise<Report[]> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
     let snapshot;
     try {
       snapshot = await retryWithBackoff(() => getDocs(
         query(
-          collection(db, 'reports'),
+          collection(firestore, 'reports'),
           where('status', '==', 'pending'),
           orderBy('createdAt', 'desc')
         )
@@ -73,7 +81,7 @@ export const getPendingReports = async (): Promise<Report[]> => {
       // If orderBy fails, just get pending reports without ordering
       console.warn('Could not order pending reports by createdAt, fetching without order:', orderError);
       snapshot = await retryWithBackoff(() => getDocs(
-        query(collection(db, 'reports'), where('status', '==', 'pending'))
+        query(collection(firestore, 'reports'), where('status', '==', 'pending'))
       ));
     }
     
@@ -100,9 +108,13 @@ export const getPendingReports = async (): Promise<Report[]> => {
 };
 
 export const resolveReport = async (reportId: string, action: 'delete' | 'dismiss'): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    const reportRef = doc(db, 'reports', reportId);
-    const reportSnap = await retryWithBackoff(() => getDocs(query(collection(db, 'reports'), where('__name__', '==', reportId))));
+    const reportRef = doc(firestore, 'reports', reportId);
+    const reportSnap = await retryWithBackoff(() => getDocs(query(collection(firestore, 'reports'), where('__name__', '==', reportId))));
     
     if (!reportSnap.empty) {
       const report = reportSnap.docs[0].data() as Report;

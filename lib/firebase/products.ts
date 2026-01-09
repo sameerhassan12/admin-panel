@@ -36,16 +36,20 @@ export interface Product {
 }
 
 export const getProducts = async (status?: string): Promise<Product[]> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
     let q;
     
     if (status) {
       q = query(
-        collection(db, 'products'),
+        collection(firestore, 'products'),
         where('status', '==', status)
       );
     } else {
-      q = query(collection(db, 'products'));
+      q = query(collection(firestore, 'products'));
     }
     
     // Try to order by createdAt, but if it fails (e.g., string dates), just get all
@@ -84,8 +88,12 @@ export const getProducts = async (status?: string): Promise<Product[]> => {
 };
 
 export const getProductById = async (productId: string): Promise<Product | null> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    const docRef = doc(db, 'products', productId);
+    const docRef = doc(firestore, 'products', productId);
     const docSnap = await retryWithBackoff(() => getDoc(docRef));
     
     if (!docSnap.exists()) {
@@ -106,8 +114,12 @@ export const getProductById = async (productId: string): Promise<Product | null>
 };
 
 export const approveProduct = async (productId: string): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    await retryWithBackoff(() => updateDoc(doc(db, 'products', productId), {
+    await retryWithBackoff(() => updateDoc(doc(firestore, 'products', productId), {
       status: 'approved',
       updatedAt: Timestamp.now(),
     }));
@@ -117,8 +129,12 @@ export const approveProduct = async (productId: string): Promise<void> => {
 };
 
 export const rejectProduct = async (productId: string, reason?: string): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    await retryWithBackoff(() => updateDoc(doc(db, 'products', productId), {
+    await retryWithBackoff(() => updateDoc(doc(firestore, 'products', productId), {
       status: 'rejected',
       updatedAt: Timestamp.now(),
       rejectionReason: reason,
@@ -129,16 +145,24 @@ export const rejectProduct = async (productId: string, reason?: string): Promise
 };
 
 export const deleteProduct = async (productId: string): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    await retryWithBackoff(() => deleteDoc(doc(db, 'products', productId)));
+    await retryWithBackoff(() => deleteDoc(doc(firestore, 'products', productId)));
   } catch (error: any) {
     throw new Error(getErrorMessage(error));
   }
 };
 
 export const updateProductStatus = async (productId: string, status: 'pending' | 'approved' | 'rejected' | 'sold'): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    await retryWithBackoff(() => updateDoc(doc(db, 'products', productId), {
+    await retryWithBackoff(() => updateDoc(doc(firestore, 'products', productId), {
       status: status,
       updatedAt: Timestamp.now(),
     }));

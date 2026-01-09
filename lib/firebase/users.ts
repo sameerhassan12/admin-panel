@@ -26,16 +26,20 @@ export interface User {
 }
 
 export const getUsers = async (): Promise<User[]> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
     let snapshot;
     try {
       snapshot = await retryWithBackoff(() => getDocs(
-        query(collection(db, 'users'), orderBy('createdAt', 'desc'))
+        query(collection(firestore, 'users'), orderBy('createdAt', 'desc'))
       ));
     } catch (orderError: any) {
       // If orderBy fails, just get documents without ordering
       console.warn('Could not order users by createdAt, fetching without order:', orderError);
-      snapshot = await retryWithBackoff(() => getDocs(collection(db, 'users')));
+      snapshot = await retryWithBackoff(() => getDocs(collection(firestore, 'users')));
     }
     
     const users = snapshot.docs.map(doc => {
@@ -63,8 +67,12 @@ export const getUsers = async (): Promise<User[]> => {
 };
 
 export const banUser = async (userId: string): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    await retryWithBackoff(() => updateDoc(doc(db, 'users', userId), {
+    await retryWithBackoff(() => updateDoc(doc(firestore, 'users', userId), {
       isBanned: true,
       bannedAt: new Date(),
     }));
@@ -74,8 +82,12 @@ export const banUser = async (userId: string): Promise<void> => {
 };
 
 export const unbanUser = async (userId: string): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    await retryWithBackoff(() => updateDoc(doc(db, 'users', userId), {
+    await retryWithBackoff(() => updateDoc(doc(firestore, 'users', userId), {
       isBanned: false,
       bannedAt: null,
     }));
@@ -85,8 +97,12 @@ export const unbanUser = async (userId: string): Promise<void> => {
 };
 
 export const makeAdmin = async (userId: string): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    await retryWithBackoff(() => updateDoc(doc(db, 'users', userId), {
+    await retryWithBackoff(() => updateDoc(doc(firestore, 'users', userId), {
       isAdmin: true,
     }));
   } catch (error: any) {
@@ -95,8 +111,12 @@ export const makeAdmin = async (userId: string): Promise<void> => {
 };
 
 export const removeAdmin = async (userId: string): Promise<void> => {
+  if (!db) {
+    throw new Error('Firebase not initialized. Please refresh the page.');
+  }
+  const firestore = db;
   try {
-    await retryWithBackoff(() => updateDoc(doc(db, 'users', userId), {
+    await retryWithBackoff(() => updateDoc(doc(firestore, 'users', userId), {
       isAdmin: false,
     }));
   } catch (error: any) {
